@@ -27,12 +27,15 @@ function save(data) {
 }
 
 // Create a new player, returns the player object
-function createPlayer(name) {
+function createPlayer(name, google = {}) {
   const data = load();
   const id = "p_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
   const player = {
     id,
     name: String(name || "").trim().slice(0, 40) || "لاعب",
+    googleEmail: google.googleEmail || null,
+    googleName: google.googleName || null,
+    googleSub: google.googleSub || null,
     score: 0,
     correctCount: 0,
     totalTimeMs: 0,

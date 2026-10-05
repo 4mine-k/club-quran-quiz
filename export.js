@@ -192,12 +192,13 @@ function buildRows(players, questions) {
     .slice()
     .sort((a, b) => (b.score - a.score) || (a.totalTimeMs - b.totalTimeMs));
 
-  const summaryHeader = ["الترتيب", "الاسم", "النقاط", "إجابات صحيحة", "عدد الأسئلة", "الوقت الكلي (ث)", "أنهى؟"];
+  const summaryHeader = ["الترتيب", "الاسم", "البريد (Google)", "النقاط", "إجابات صحيحة", "عدد الأسئلة", "الوقت الكلي (ث)", "أنهى؟"];
   const summaryRows = [summaryHeader];
   ranked.forEach((p, i) => {
     summaryRows.push([
       i + 1,
       p.name,
+      p.googleEmail || "—",
       p.score,
       p.correctCount,
       questions.length,

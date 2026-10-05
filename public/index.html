@@ -10,6 +10,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Amiri:wght@700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
   <div class="app">
@@ -21,9 +22,21 @@
         <h1 class="title">نادي القرآن الكريم</h1>
         <p class="subtitle">ENSIAS — مسابقة ثقافية</p>
         <div class="divider"></div>
-        <label class="field-label" for="playerName">أدخل اسمك للمشاركة</label>
-        <input id="playerName" class="text-input" type="text" placeholder="اسمك الكامل" maxlength="40" autocomplete="off" />
-        <button id="startBtn" class="btn btn-primary">ابدأ المسابقة ✦</button>
+
+        <!-- Step 1: Google sign-in (shown only when Google auth is enabled) -->
+        <div id="googleStep" class="hidden">
+          <p class="field-label">سجّل الدخول للمشاركة</p>
+          <div id="googleBtn" style="display:flex; justify-content:center; margin: 6px 0 4px;"></div>
+          <p id="googleUserLine" class="muted" style="margin-top:8px;"></p>
+        </div>
+
+        <!-- Step 2: choose username + start (shown after sign-in, or always if Google disabled) -->
+        <div id="nameStep" class="hidden">
+          <label class="field-label" for="playerName">اختر اسمك في المسابقة</label>
+          <input id="playerName" class="text-input" type="text" placeholder="اسمك الكامل" maxlength="40" autocomplete="off" />
+          <button id="startBtn" class="btn btn-primary">ابدأ المسابقة ✦</button>
+        </div>
+
         <p id="welcomeError" class="error-msg"></p>
         <button id="showLeaderboardBtn" class="btn btn-ghost">🏆 عرض المتصدرين</button>
       </div>

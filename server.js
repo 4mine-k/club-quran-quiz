@@ -9,6 +9,10 @@ const { QUESTIONS, TIME_PER_QUESTION } = require("./questions");
 const { gradeOpen } = require("./grading");
 const db = require("./db");
 const xport = require("./export");
+const { verifyIdToken } = require("./google");
+
+// Google OAuth client ID — set via environment variable on Replit (Secrets).
+const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || "";
 
 // Detect the best LAN IPv4 (prefer common private WiFi ranges, skip virtual adapters)
 function detectLanIp() {
@@ -115,11 +119,38 @@ const server = http.createServer(async (req, res) => {
   const p = url.pathname;
 
   // ---------- API ----------
+
+  // Frontend config: expose the Google Client ID + whether auth is enabled
+  if (p === "/api/config" && req.method === "GET") {
+    return sendJSON(res, 200, {
+      googleClientId: GOOGLE_CLIENT_ID,
+      googleEnabled: !!GOOGLE_CLIENT_ID,
+    });
+  }
+
   if (p === "/api/register" && req.method === "POST") {
     const body = await readBody(req);
-    const name = (body.name || "").toString().trim();
-    if (!name) return sendJSON(res, 400, { error: "الاسم مطلوب" });
-    const player = db.createPlayer(name);
+    const username = (body.name || "").toString().trim();
+    if (!username) return sendJSON(res, 400, { error: "اختر اسم اللاعب أولاً" });
+
+    // If Google auth is enabled, require a valid Google ID token.
+    let googleEmail = null;
+    let googleName = null;
+    let googleSub = null;
+    if (GOOGLE_CLIENT_ID) {
+      const credential = (body.credential || "").toString();
+      if (!credential) return sendJSON(res, 401, { error: "يجب تسجيل الدخول عبر Google" });
+      try {
+        const payload = await verifyIdToken(credential, GOOGLE_CLIENT_ID);
+        googleEmail = payload.email || null;
+        googleName = payload.name || null;
+        googleSub = payload.sub || null;
+      } catch (e) {
+        return sendJSON(res, 401, { error: "فشل التحقق من حساب Google" });
+      }
+    }
+
+    const player = db.createPlayer(username, { googleEmail, googleName, googleSub });
     return sendJSON(res, 200, {
       playerId: player.id,
       name: player.name,

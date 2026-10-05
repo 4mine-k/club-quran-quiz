@@ -3,6 +3,8 @@
 const state = {
   playerId: null,
   name: "",
+  credential: null, // Google ID token (JWT) when auth enabled
+  googleEnabled: false,
   questions: [],
   current: 0,
   score: 0,
@@ -29,6 +31,50 @@ async function api(path, method = "GET", body) {
   return res.json();
 }
 
+// ===== Startup: load config and set up Google sign-in =====
+(async function initWelcome() {
+  let cfg = { googleEnabled: false, googleClientId: "" };
+  try { cfg = await api("/api/config"); } catch (e) {}
+  state.googleEnabled = !!cfg.googleEnabled;
+
+  if (state.googleEnabled && cfg.googleClientId) {
+    $("googleStep").classList.remove("hidden");
+    // Wait for the Google script to be ready, then render the button
+    const waitGoogle = setInterval(() => {
+      if (window.google && google.accounts && google.accounts.id) {
+        clearInterval(waitGoogle);
+        google.accounts.id.initialize({
+          client_id: cfg.googleClientId,
+          callback: onGoogleCredential,
+        });
+        google.accounts.id.renderButton($("googleBtn"), {
+          theme: "filled_blue",
+          size: "large",
+          shape: "pill",
+          text: "signin_with",
+          locale: "ar",
+        });
+      }
+    }, 150);
+  } else {
+    // No Google auth: show the name step directly
+    $("nameStep").classList.remove("hidden");
+  }
+})();
+
+function onGoogleCredential(resp) {
+  state.credential = resp.credential;
+  // Decode the name/email from the token payload (display only)
+  try {
+    const payload = JSON.parse(atob(resp.credential.split(".")[1].replace(/-/g, "+").replace(/_/g, "/")));
+    $("googleUserLine").textContent = "✓ تم تسجيل الدخول: " + (payload.email || payload.name || "");
+    if (payload.name && !$("playerName").value) $("playerName").value = payload.name.slice(0, 40);
+  } catch (e) {}
+  // Reveal the username step
+  $("nameStep").classList.remove("hidden");
+  $("playerName").focus();
+}
+
 // ===== Welcome / register =====
 $("startBtn").addEventListener("click", startQuiz);
 $("playerName").addEventListener("keydown", (e) => {
@@ -38,13 +84,17 @@ $("playerName").addEventListener("keydown", (e) => {
 async function startQuiz() {
   const name = $("playerName").value.trim();
   if (!name) {
-    $("welcomeError").textContent = "من فضلك أدخل اسمك أولاً";
+    $("welcomeError").textContent = "من فضلك اختر اسمك أولاً";
+    return;
+  }
+  if (state.googleEnabled && !state.credential) {
+    $("welcomeError").textContent = "يجب تسجيل الدخول عبر Google أولاً";
     return;
   }
   $("startBtn").disabled = true;
   $("welcomeError").textContent = "";
   try {
-    const reg = await api("/api/register", "POST", { name });
+    const reg = await api("/api/register", "POST", { name, credential: state.credential });
     if (reg.error) throw new Error(reg.error);
     state.playerId = reg.playerId;
     state.name = reg.name;
@@ -60,7 +110,7 @@ async function startQuiz() {
     showScreen("screen-quiz");
     renderQuestion();
   } catch (err) {
-    $("welcomeError").textContent = "حدث خطأ، حاول مرة أخرى";
+    $("welcomeError").textContent = (err && err.message) ? err.message : "حدث خطأ، حاول مرة أخرى";
     $("startBtn").disabled = false;
   }
 }
