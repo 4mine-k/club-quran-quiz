@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>لوحة الإدارة — نادي القرآن الكريم</title>
+  <link rel="icon" href="logo.png" />
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@600;700;800&family=Amiri:wght@700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    .admin-table { width: 100%; border-collapse: collapse; margin-top: 16px; font-size: 0.95rem; }
+    .admin-table th, .admin-table td { padding: 10px 8px; border-bottom: 1px solid #e3ecdc; text-align: center; }
+    .admin-table th { background: var(--green); color: #fff; font-weight: 700; }
+    .admin-table tr.top-1 td { background: #fff7e0; font-weight: 800; }
+    .admin-table tr.top-2 td { background: #f3f6f0; font-weight: 700; }
+    .admin-table tr.top-3 td { background: #fdf0e4; font-weight: 700; }
+    .admin-name { text-align: right; font-weight: 700; }
+    .toolbar { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
+    .toolbar .btn { width: auto; flex: 1; min-width: 140px; margin-top: 0; }
+    .count-pill { background:#eaf3e3; color:var(--green-deep); padding:6px 14px; border-radius:20px; font-weight:700; display:inline-block; }
+  </style>
+</head>
+<body>
+  <div class="app" style="max-width: 820px;">
+    <section class="screen active">
+      <div class="card" style="text-align:center;">
+        <img src="logo.png" alt="شعار" class="logo" style="width:110px;" />
+        <h1 class="title">لوحة الإدارة والنتائج</h1>
+        <p class="subtitle">اختر الفائزين الثلاثة الأوائل</p>
+        <div class="divider"></div>
+
+        <div class="toolbar">
+          <a class="btn btn-primary" href="/export.xlsx">⬇️ تحميل Excel (xlsx)</a>
+          <a class="btn btn-accent" href="/export.csv">⬇️ تحميل CSV</a>
+          <button class="btn btn-ghost" id="refreshBtn">↻ تحديث</button>
+        </div>
+
+        <p style="margin-top:14px;"><span class="count-pill" id="countPill">0 مشارك</span></p>
+
+        <div style="overflow-x:auto;">
+          <table class="admin-table" id="tbl">
+            <thead>
+              <tr>
+                <th>#</th><th>الاسم</th><th>النقاط</th><th>صحيحة</th><th>الوقت (ث)</th><th>الحالة</th>
+              </tr>
+            </thead>
+            <tbody id="tblBody"></tbody>
+          </table>
+        </div>
+        <p id="emptyMsg" class="muted hidden" style="margin-top:16px;">لا يوجد مشاركون بعد.</p>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    async function load() {
+      const data = await (await fetch("/api/allplayers")).json();
+      const players = (data.players || []).slice().sort((a, b) =>
+        (b.score - a.score) || (a.totalTimeMs - b.totalTimeMs));
+      const body = document.getElementById("tblBody");
+      body.innerHTML = "";
+      document.getElementById("countPill").textContent = players.length + " مشارك";
+      document.getElementById("emptyMsg").classList.toggle("hidden", players.length > 0);
+
+      players.forEach((p, i) => {
+        const tr = document.createElement("tr");
+        if (i < 3) tr.className = "top-" + (i + 1);
+        const medal = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : (i + 1);
+        tr.innerHTML =
+          "<td>" + medal + "</td>" +
+          '<td class="admin-name">' + escapeHtml(p.name) + "</td>" +
+          "<td>" + p.score + "</td>" +
+          "<td>" + p.correctCount + "</td>" +
+          "<td>" + (p.totalTimeMs / 1000).toFixed(1) + "</td>" +
+          "<td>" + (p.finished ? "أنهى ✓" : "يلعب…") + "</td>";
+        body.appendChild(tr);
+      });
+    }
+    function escapeHtml(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+    document.getElementById("refreshBtn").addEventListener("click", load);
+    load();
+    setInterval(load, 5000); // auto-refresh every 5s
+  </script>
+</body>
+</html>

@@ -1,0 +1,13 @@
+# Render.com deployment blueprint for Club Quran ENSIAS Quiz
+# Docs: https://render.com/docs/blueprint-spec
+services:
+  - type: web
+    name: club-quran-quiz
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: node server.js
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production

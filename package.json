@@ -1,0 +1,14 @@
+{
+  "name": "club-quran-quiz",
+  "version": "1.0.0",
+  "description": "Arabic RTL quiz app for Club Quran ENSIAS - timed scoring + leaderboard + Excel export",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "author": "Club Quran ENSIAS",
+  "license": "MIT"
+}

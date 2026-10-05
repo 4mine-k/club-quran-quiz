@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>انضم إلى المسابقة — نادي القرآن الكريم</title>
+  <link rel="icon" href="logo.png" />
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@600;700;800&family=Amiri:wght@700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    .join-wrap { text-align: center; }
+    .qr-box { background: #fff; display: inline-block; padding: 18px; border-radius: 20px; box-shadow: var(--shadow); margin: 10px auto; }
+    .qr-box img, .qr-box canvas { display: block; width: 320px; height: 320px; image-rendering: pixelated; }
+    .join-url { font-size: 1.6rem; font-weight: 800; color: var(--green-deep); direction: ltr; margin: 14px 0; letter-spacing: 0.5px; }
+    .join-hint { color: var(--muted); font-size: 1.05rem; line-height: 1.9; }
+    .big-title { font-size: 2.4rem; }
+    @media (min-width: 700px) { .qr-box img, .qr-box canvas { width: 420px; height: 420px; } }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <section class="screen active">
+      <div class="card join-wrap">
+        <img src="logo.png" alt="شعار نادي القرآن الكريم" class="logo" style="width:150px;" />
+        <h1 class="title big-title">انضم إلى المسابقة</h1>
+        <p class="subtitle">امسح رمز QR بكاميرا هاتفك</p>
+        <div class="divider"></div>
+        <div id="qrBox" class="qr-box"></div>
+        <p class="join-hint">أو افتح الرابط التالي في المتصفح:</p>
+        <p id="joinUrl" class="join-url">...</p>
+        <p class="join-hint">تأكد أن هاتفك متصل بنفس شبكة WiFi.</p>
+      </div>
+    </section>
+  </div>
+
+  <script src="qrcode.min.js"></script>
+  <script>
+    (async function () {
+      let url = location.origin;
+      try {
+        const info = await (await fetch("/api/joininfo")).json();
+        if (info && info.url) url = info.url;
+      } catch (e) { /* fallback to origin */ }
+
+      document.getElementById("joinUrl").textContent = url;
+
+      // Render QR with the vendored library (type 0 = auto size, ECC 'M')
+      const qr = qrcode(0, "M");
+      qr.addData(url);
+      qr.make();
+      // createImgTag(cellSize, margin) returns an <img> with a data URI
+      document.getElementById("qrBox").innerHTML = qr.createImgTag(10, 0);
+      const img = document.querySelector("#qrBox img");
+      if (img) { img.style.width = "100%"; img.style.height = "auto"; img.alt = "QR"; }
+    })();
+  </script>
+</body>
+</html>

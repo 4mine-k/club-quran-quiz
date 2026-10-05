@@ -1,0 +1,19 @@
+# Node
+node_modules/
+npm-debug.log*
+yarn-error.log*
+
+# Runtime quiz data (players' answers are generated at runtime; don't commit test data)
+data/players.json
+
+# OS / editor junk
+.DS_Store
+Thumbs.db
+*.log
+.vscode/
+.idea/
+
+# Temp test files
+_test_*.js
+_qr_*.svg
+*.tmp

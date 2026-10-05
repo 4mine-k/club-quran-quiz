@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#2e7d32" />
+  <title>مسابقة نادي القرآن الكريم - ENSIAS</title>
+  <link rel="icon" href="logo.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Amiri:wght@700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app">
+
+    <!-- ===== Screen: Welcome / Name entry ===== -->
+    <section id="screen-welcome" class="screen active">
+      <div class="card welcome-card">
+        <img src="logo.png" alt="شعار نادي القرآن الكريم" class="logo" />
+        <h1 class="title">نادي القرآن الكريم</h1>
+        <p class="subtitle">ENSIAS — مسابقة ثقافية</p>
+        <div class="divider"></div>
+        <label class="field-label" for="playerName">أدخل اسمك للمشاركة</label>
+        <input id="playerName" class="text-input" type="text" placeholder="اسمك الكامل" maxlength="40" autocomplete="off" />
+        <button id="startBtn" class="btn btn-primary">ابدأ المسابقة ✦</button>
+        <p id="welcomeError" class="error-msg"></p>
+        <button id="showLeaderboardBtn" class="btn btn-ghost">🏆 عرض المتصدرين</button>
+      </div>
+    </section>
+
+    <!-- ===== Screen: Quiz ===== -->
+    <section id="screen-quiz" class="screen">
+      <header class="quiz-header">
+        <img src="logo.png" alt="شعار" class="mini-logo" />
+        <div class="progress-wrap">
+          <div class="progress-text"><span id="qIndex">1</span> / <span id="qTotal">13</span></div>
+          <div class="progress-bar"><div id="progressFill" class="progress-fill"></div></div>
+        </div>
+        <div id="scoreBadge" class="score-badge">0</div>
+      </header>
+
+      <div class="timer-wrap">
+        <div id="timerBar" class="timer-bar"></div>
+        <span id="timerText" class="timer-text">30</span>
+      </div>
+
+      <div class="card quiz-card">
+        <span id="qCategory" class="category-chip">فقه</span>
+        <h2 id="qText" class="question-text"></h2>
+
+        <div id="optionsArea" class="options-area"></div>
+
+        <div id="openArea" class="open-area hidden">
+          <input id="openInput" class="text-input" type="text" placeholder="اكتب إجابتك هنا..." autocomplete="off" />
+          <button id="submitOpenBtn" class="btn btn-primary">تأكيد الإجابة</button>
+        </div>
+
+        <div id="feedback" class="feedback hidden"></div>
+      </div>
+    </section>
+
+    <!-- ===== Screen: Results ===== -->
+    <section id="screen-results" class="screen">
+      <div class="card results-card">
+        <img src="logo.png" alt="شعار" class="logo" />
+        <h1 class="title">انتهت المسابقة!</h1>
+        <p id="resultName" class="subtitle"></p>
+        <div class="result-stats">
+          <div class="stat"><span id="resultScore" class="stat-num">0</span><span class="stat-label">النقاط</span></div>
+          <div class="stat"><span id="resultCorrect" class="stat-num">0</span><span class="stat-label">إجابات صحيحة</span></div>
+        </div>
+        <button id="toLeaderboardBtn" class="btn btn-primary">🏆 شاهد المتصدرين</button>
+      </div>
+    </section>
+
+    <!-- ===== Screen: Leaderboard ===== -->
+    <section id="screen-leaderboard" class="screen">
+      <div class="card leaderboard-card">
+        <img src="logo.png" alt="شعار" class="logo" />
+        <h1 class="title">🏆 المتصدرون</h1>
+        <p class="subtitle">أفضل 3 متسابقين</p>
+        <ol id="leaderboardList" class="leaderboard-list"></ol>
+        <p id="leaderboardEmpty" class="muted hidden">لا يوجد متسابقون بعد.</p>
+        <button id="playAgainBtn" class="btn btn-ghost">↺ لعب من جديد</button>
+      </div>
+    </section>
+
+  </div>
+  <script src="app.js"></script>
+</body>
+</html>
