@@ -3,16 +3,47 @@
 
 const fs = require("fs");
 const path = require("path");
+const os = require("os");
 
-const DATA_DIR = path.join(__dirname, "data");
-const DB_FILE = path.join(DATA_DIR, "players.json");
+// Prefer a writable data dir. On read-only hosts (e.g. Cloud Run), fall back to /tmp.
+function pickDataDir() {
+  const candidates = [
+    path.join(__dirname, "data"),
+    path.join(os.tmpdir(), "club-quran-data"),
+  ];
+  for (const dir of candidates) {
+    try {
+      fs.mkdirSync(dir, { recursive: true });
+      // test writability
+      const t = path.join(dir, ".wtest");
+      fs.writeFileSync(t, "ok");
+      fs.unlinkSync(t);
+      return dir;
+    } catch (e) {
+      /* try next */
+    }
+  }
+  return null; // no writable dir -> in-memory only
+}
+
+const DATA_DIR = pickDataDir();
+const DB_FILE = DATA_DIR ? path.join(DATA_DIR, "players.json") : null;
+
+// In-memory fallback store (used if the filesystem is not writable)
+let memStore = { players: [] };
+const usingMemory = !DATA_DIR;
 
 function ensure() {
-  if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
-  if (!fs.existsSync(DB_FILE)) fs.writeFileSync(DB_FILE, JSON.stringify({ players: [] }, null, 2), "utf8");
+  if (usingMemory) return;
+  try {
+    if (!fs.existsSync(DB_FILE)) {
+      fs.writeFileSync(DB_FILE, JSON.stringify({ players: [] }, null, 2), "utf8");
+    }
+  } catch (e) { /* ignore */ }
 }
 
 function load() {
+  if (usingMemory) return memStore;
   ensure();
   try {
     return JSON.parse(fs.readFileSync(DB_FILE, "utf8"));
@@ -22,8 +53,16 @@ function load() {
 }
 
 function save(data) {
-  ensure();
-  fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2), "utf8");
+  if (usingMemory) {
+    memStore = data;
+    return;
+  }
+  try {
+    fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2), "utf8");
+  } catch (e) {
+    // Fall back to memory if write fails at runtime
+    memStore = data;
+  }
 }
 
 // Create a new player, returns the player object

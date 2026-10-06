@@ -115,6 +115,7 @@ function serveStatic(req, res, urlPath) {
 }
 
 const server = http.createServer(async (req, res) => {
+ try {
   const url = new URL(req.url, `http://${req.headers.host}`);
   const p = url.pathname;
 
@@ -306,7 +307,20 @@ const server = http.createServer(async (req, res) => {
 
   res.writeHead(405, { "Content-Type": "text/plain; charset=utf-8" });
   res.end("Method Not Allowed");
+ } catch (err) {
+  console.error("Request error:", err);
+  try {
+    if (!res.headersSent) {
+      res.writeHead(500, { "Content-Type": "text/plain; charset=utf-8" });
+    }
+    res.end("Internal Server Error");
+  } catch (e) {}
+ }
 });
+
+// Never let an unhandled error crash the whole process (prevents deploy crash loops)
+process.on("uncaughtException", (e) => console.error("uncaughtException:", e));
+process.on("unhandledRejection", (e) => console.error("unhandledRejection:", e));
 
 server.listen(PORT, "0.0.0.0", () => {
   const hosted = !!process.env.RENDER || !!process.env.PORT_PUBLIC || process.env.NODE_ENV === "production";
