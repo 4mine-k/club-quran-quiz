@@ -1,4 +1,4 @@
-run = "PORT=5000 node server.js"
+run = "unset NODE_OPTIONS; PORT=5000 node server.js"
 entrypoint = "server.js"
 modules = ["nodejs-18", "web", "nix"]
 
@@ -6,7 +6,7 @@ modules = ["nodejs-18", "web", "nix"]
 channel = "stable-25_05"
 
 [deployment]
-run = ["sh", "-c", "PORT=5000 node server.js"]
+run = ["sh", "-c", "unset NODE_OPTIONS; PORT=5000 node server.js"]
 deploymentTarget = "cloudrun"
 
 [[ports]]
@@ -31,7 +31,7 @@ author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "PORT=5000 node server.js"
+args = "unset NODE_OPTIONS; PORT=5000 node server.js"
 waitForPort = 5000
 
 [workflows.workflow.metadata]
