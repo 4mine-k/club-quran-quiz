@@ -308,7 +308,7 @@ const server = http.createServer(async (req, res) => {
   res.end("Method Not Allowed");
 });
 
-server.listen(PORT, () => {
+server.listen(PORT, "0.0.0.0", () => {
   const hosted = !!process.env.RENDER || !!process.env.PORT_PUBLIC || process.env.NODE_ENV === "production";
   console.log("\n  ✅ Club Quran Quiz is running on port " + PORT + "!\n");
   if (process.env.RENDER_EXTERNAL_URL) {
