@@ -224,11 +224,38 @@ const server = http.createServer(async (req, res) => {
       pl.finished = true;
       pl.finishedAt = Date.now();
     });
+
+    // Build a full review: each question + correct answer + explanation + what the player answered
+    const review = QUESTIONS.map((q, idx) => {
+      const ans = updated.answers.find((a) => a.questionId === q.id);
+      const correctAnswer = q.type === "mcq" ? q.options[q.correct] : q.accepted[0];
+      let yourAnswer = "—";
+      if (ans) {
+        if (ans.answer === "" || ans.answer == null) yourAnswer = "(بدون إجابة)";
+        else if (q.type === "mcq") {
+          const i = Number(ans.answer);
+          yourAnswer = Number.isInteger(i) && q.options[i] != null ? q.options[i] : String(ans.answer);
+        } else {
+          yourAnswer = String(ans.answer);
+        }
+      }
+      return {
+        index: idx + 1,
+        category: q.category,
+        text: q.text,
+        correctAnswer,
+        explanation: q.explanation,
+        yourAnswer,
+        isCorrect: ans ? ans.isCorrect : false,
+      };
+    });
+
     return sendJSON(res, 200, {
       score: updated.score,
       correctCount: updated.correctCount,
       total: QUESTIONS.length,
       totalTimeMs: updated.totalTimeMs,
+      review,
     });
   }
 

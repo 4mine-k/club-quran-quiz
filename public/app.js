@@ -267,44 +267,41 @@ async function finishQuiz() {
   $("resultName").textContent = state.name;
   $("resultScore").textContent = res.score;
   $("resultCorrect").textContent = res.correctCount + " / " + res.total;
+  renderReview(res.review || []);
   showScreen("screen-results");
 }
 
-// ===== Leaderboard =====
-$("toLeaderboardBtn").addEventListener("click", loadLeaderboard);
-$("showLeaderboardBtn").addEventListener("click", loadLeaderboard);
+// Render the per-question review (correct answers + explanations)
+function renderReview(review) {
+  const list = $("reviewList");
+  list.innerHTML = "";
+  review.forEach((item) => {
+    const div = document.createElement("div");
+    div.className = "review-item " + (item.isCorrect ? "ok" : "no");
+    const mark = item.isCorrect ? "✓" : "✗";
+    div.innerHTML = `
+      <div class="review-q"><span class="review-num">${item.index}</span> ${escapeHtml(item.text)}</div>
+      <div class="review-row"><span class="review-mark">${mark}</span> إجابتك: <b>${escapeHtml(item.yourAnswer)}</b></div>
+      <div class="review-correct">الإجابة الصحيحة: <b>${escapeHtml(item.correctAnswer)}</b></div>
+      <div class="review-exp">💡 ${escapeHtml(item.explanation || "")}</div>
+    `;
+    list.appendChild(div);
+  });
+}
+
+// ===== Play again =====
 $("playAgainBtn").addEventListener("click", () => {
-  $("playerName").value = "";
-  $("startBtn").disabled = false;
+  state.playerId = null;
+  state.credential = null;
+  if ($("playerName")) $("playerName").value = "";
+  if ($("startBtn")) $("startBtn").disabled = false;
+  // If Google is enabled, require sign-in again
+  if (state.googleEnabled) {
+    $("nameStep").classList.add("hidden");
+    $("googleUserLine").textContent = "";
+  }
   showScreen("screen-welcome");
 });
-
-async function loadLeaderboard() {
-  const data = await api("/api/leaderboard?limit=3");
-  const list = $("leaderboardList");
-  list.innerHTML = "";
-  const medals = ["🥇", "🥈", "🥉"];
-  if (!data.top || data.top.length === 0) {
-    $("leaderboardEmpty").classList.remove("hidden");
-  } else {
-    $("leaderboardEmpty").classList.add("hidden");
-    data.top.forEach((p, i) => {
-      const li = document.createElement("li");
-      li.className = "lb-item rank-" + (i + 1);
-      const seconds = (p.totalTimeMs / 1000).toFixed(1);
-      li.innerHTML = `
-        <span class="lb-medal">${medals[i] || i + 1}</span>
-        <div class="lb-info">
-          <div class="lb-name">${escapeHtml(p.name)}</div>
-          <div class="lb-meta">${p.correctCount} إجابة صحيحة · ${seconds} ثانية</div>
-        </div>
-        <span class="lb-score">${p.score}</span>
-      `;
-      list.appendChild(li);
-    });
-  }
-  showScreen("screen-leaderboard");
-}
 
 // ===== Util =====
 function escapeHtml(str) {

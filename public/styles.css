@@ -295,3 +295,28 @@ body {
   .title { font-size: 1.6rem; }
   .question-text { font-size: 1.1rem; }
 }
+
+/* ===== End-of-game review ===== */
+.review-title { color: var(--green-deep); font-size: 1.2rem; margin: 6px 0 14px; }
+.review-list { display: flex; flex-direction: column; gap: 12px; text-align: right; }
+.review-item {
+  border-radius: 14px;
+  padding: 14px 16px;
+  border: 2px solid #d7e4cf;
+  background: #fbfdf9;
+}
+.review-item.ok { border-color: var(--green); background: #eef7e8; }
+.review-item.no { border-color: #e53935; background: #fdecea; }
+.review-q { font-weight: 700; line-height: 1.8; margin-bottom: 8px; }
+.review-num {
+  display: inline-grid; place-items: center;
+  width: 26px; height: 26px;
+  background: var(--green); color: #fff;
+  border-radius: 50%; font-size: 0.85rem; margin-left: 4px;
+}
+.review-row { margin: 4px 0; font-size: 0.95rem; }
+.review-mark { font-weight: 800; }
+.review-item.ok .review-mark { color: var(--green-dark); }
+.review-item.no .review-mark { color: #c62828; }
+.review-correct { font-size: 0.95rem; color: var(--green-deep); margin: 4px 0; }
+.review-exp { font-size: 0.9rem; color: #555; line-height: 1.7; margin-top: 6px; }
