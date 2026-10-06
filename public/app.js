@@ -121,16 +121,12 @@ function renderQuestion() {
   const q = state.questions[state.current];
 
   $("qIndex").textContent = state.current + 1;
-  $("scoreBadge").textContent = state.score;
   $("qCategory").textContent = q.category;
   $("qText").textContent = q.text;
   $("progressFill").style.width = ((state.current) / state.questions.length) * 100 + "%";
 
   const optionsArea = $("optionsArea");
   const openArea = $("openArea");
-  const feedback = $("feedback");
-  feedback.className = "feedback hidden";
-  feedback.innerHTML = "";
   optionsArea.innerHTML = "";
 
   if (q.type === "mcq") {
@@ -187,7 +183,7 @@ function startTimer() {
   }, 1000);
 }
 
-// ===== Submit answer =====
+// ===== Submit answer (no feedback — go straight to next question) =====
 async function submitAnswer(answer, clickedBtn) {
   if (state.answered) return;
   state.answered = true;
@@ -195,56 +191,32 @@ async function submitAnswer(answer, clickedBtn) {
   const timeMs = Date.now() - state.questionStart;
   const q = state.questions[state.current];
 
-  // Lock the UI
+  // Lock the UI briefly
   if (q.type === "mcq") {
     document.querySelectorAll(".option-btn").forEach((b) => (b.disabled = true));
+    if (clickedBtn) clickedBtn.classList.add("selected");
   } else {
     $("openInput").disabled = true;
     $("submitOpenBtn").disabled = true;
   }
 
-  const resp = await api("/api/answer", "POST", {
-    playerId: state.playerId,
-    questionId: q.id,
-    answer: answer == null ? "" : answer,
-    timeMs,
-  });
-
-  if (resp.isCorrect) {
-    state.score += resp.points;
-    state.correct += 1;
-    $("scoreBadge").textContent = state.score;
-  }
-
-  // Visual marking for MCQ
-  if (q.type === "mcq") {
-    const btns = document.querySelectorAll(".option-btn");
-    const correctIdx = q.options.indexOf(resp.correctAnswer);
-    btns.forEach((b, i) => {
-      if (i === correctIdx) b.classList.add("correct");
-      else if (clickedBtn === b) b.classList.add("wrong");
+  // Record the answer silently (server stores it; we never reveal correctness)
+  try {
+    await api("/api/answer", "POST", {
+      playerId: state.playerId,
+      questionId: q.id,
+      answer: answer == null ? "" : answer,
+      timeMs,
     });
+  } catch (e) { /* ignore, keep going */ }
+
+  // Advance immediately
+  if (isLast()) {
+    finishQuiz();
+  } else {
+    state.current += 1;
+    renderQuestion();
   }
-
-  showFeedback(resp, answer);
-}
-
-function showFeedback(resp, answer) {
-  const fb = $("feedback");
-  const timedOut = answer == null || answer === "";
-  const head = resp.isCorrect
-    ? "✓ إجابة صحيحة!"
-    : timedOut
-    ? "⏱ انتهى الوقت"
-    : "✗ إجابة خاطئة";
-  fb.className = "feedback " + (resp.isCorrect ? "ok" : "no");
-  fb.innerHTML = `
-    <div class="feedback-head">${head}</div>
-    ${resp.isCorrect ? `<div class="feedback-points">+${resp.points} نقطة</div>` : `<div class="feedback-answer">الإجابة الصحيحة: ${escapeHtml(resp.correctAnswer)}</div>`}
-    <div class="feedback-exp">${escapeHtml(resp.explanation || "")}</div>
-    <button id="nextBtn" class="btn ${resp.isCorrect ? "btn-primary" : "btn-accent"}">${isLast() ? "إنهاء ومشاهدة النتيجة" : "السؤال التالي ←"}</button>
-  `;
-  $("nextBtn").addEventListener("click", nextQuestion);
 }
 
 function isLast() {
@@ -263,45 +235,13 @@ async function nextQuestion() {
 // ===== Finish =====
 async function finishQuiz() {
   $("progressFill").style.width = "100%";
-  const res = await api("/api/finish", "POST", { playerId: state.playerId });
-  $("resultName").textContent = state.name;
-  $("resultScore").textContent = res.score;
-  $("resultCorrect").textContent = res.correctCount + " / " + res.total;
-  renderReview(res.review || []);
+  try {
+    await api("/api/finish", "POST", { playerId: state.playerId });
+  } catch (e) { /* ignore */ }
+  const label = state.name ? ("المتسابق: " + state.name) : "";
+  $("resultName").textContent = label;
   showScreen("screen-results");
 }
-
-// Render the per-question review (correct answers + explanations)
-function renderReview(review) {
-  const list = $("reviewList");
-  list.innerHTML = "";
-  review.forEach((item) => {
-    const div = document.createElement("div");
-    div.className = "review-item " + (item.isCorrect ? "ok" : "no");
-    const mark = item.isCorrect ? "✓" : "✗";
-    div.innerHTML = `
-      <div class="review-q"><span class="review-num">${item.index}</span> ${escapeHtml(item.text)}</div>
-      <div class="review-row"><span class="review-mark">${mark}</span> إجابتك: <b>${escapeHtml(item.yourAnswer)}</b></div>
-      <div class="review-correct">الإجابة الصحيحة: <b>${escapeHtml(item.correctAnswer)}</b></div>
-      <div class="review-exp">💡 ${escapeHtml(item.explanation || "")}</div>
-    `;
-    list.appendChild(div);
-  });
-}
-
-// ===== Play again =====
-$("playAgainBtn").addEventListener("click", () => {
-  state.playerId = null;
-  state.credential = null;
-  if ($("playerName")) $("playerName").value = "";
-  if ($("startBtn")) $("startBtn").disabled = false;
-  // If Google is enabled, require sign-in again
-  if (state.googleEnabled) {
-    $("nameStep").classList.add("hidden");
-    $("googleUserLine").textContent = "";
-  }
-  showScreen("screen-welcome");
-});
 
 // ===== Util =====
 function escapeHtml(str) {

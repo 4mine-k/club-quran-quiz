@@ -49,7 +49,6 @@
           <div class="progress-text"><span id="qIndex">1</span> / <span id="qTotal">13</span></div>
           <div class="progress-bar"><div id="progressFill" class="progress-fill"></div></div>
         </div>
-        <div id="scoreBadge" class="score-badge">0</div>
       </header>
 
       <div class="timer-wrap">
@@ -67,27 +66,18 @@
           <input id="openInput" class="text-input" type="text" placeholder="اكتب إجابتك هنا..." autocomplete="off" />
           <button id="submitOpenBtn" class="btn btn-primary">تأكيد الإجابة</button>
         </div>
-
-        <div id="feedback" class="feedback hidden"></div>
       </div>
     </section>
 
-    <!-- ===== Screen: Results ===== -->
+    <!-- ===== Screen: Results (thank-you only) ===== -->
     <section id="screen-results" class="screen">
       <div class="card results-card">
         <img src="logo.png" alt="شعار" class="logo" />
-        <h1 class="title">انتهت المسابقة!</h1>
+        <h1 class="title">انتهت المسابقة 🌙</h1>
         <p id="resultName" class="subtitle"></p>
-        <div class="result-stats">
-          <div class="stat"><span id="resultScore" class="stat-num">0</span><span class="stat-label">النقاط</span></div>
-          <div class="stat"><span id="resultCorrect" class="stat-num">0</span><span class="stat-label">إجابات صحيحة</span></div>
-        </div>
-
         <div class="divider"></div>
-        <h2 class="review-title">مراجعة الإجابات والتعليل</h2>
-        <div id="reviewList" class="review-list"></div>
-
-        <button id="playAgainBtn" class="btn btn-ghost">↺ لعب من جديد</button>
+        <p class="thanks-msg">شكراً جزيلاً لمشاركتك! 🤍</p>
+        <p class="thanks-sub">انتظر إعلان النتائج للفوز بالجوائز بإذن الله.</p>
       </div>
     </section>
 
